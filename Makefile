@@ -1,4 +1,3 @@
-
 CC     = gcc
 INCLUDE= include
 SOURCE = $(wildcard src/*.c)
@@ -28,5 +27,5 @@ build/%.o: src/%.c | build
 
 .PHONY: clean
 clean:
-	-rm $(TARGET)
-	-rm $(OBJS)
+	$(RM) $(TARGET)
+	$(RM) $(OBJS)
