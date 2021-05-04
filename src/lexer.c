@@ -2,9 +2,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
-
-#define IS_NUMERIC(x) ((x) < 58 && (x) > 47)
 
 
 struct Lexer {
@@ -18,17 +17,14 @@ struct Lexer {
 
 static struct Lexer lexer;
 
+
 static char next_char() {
     lexer.ifp++;
     if( lexer.ifp >= lexer.filesize )
-        return 0;
+        return EOF;
     
     char c = lexer.file[lexer.ifp];
     lexer.character++;
-    if( c == '\n' ) {
-        lexer.line++;
-        lexer.character = 0;
-    }
 
     lexer.current = c;
     return c;
@@ -50,7 +46,7 @@ TokenStream* tokenize(const char* filename, const char* file, size_t filesize) {
     TokenStream* token_stream = new_tokenstream();
 
     char c;
-    while( (c = next_char()) ) {
+    while( (c = next_char()) != EOF ) {
 
         switch(c) {
             case '+':
@@ -102,8 +98,15 @@ TokenStream* tokenize(const char* filename, const char* file, size_t filesize) {
             case '"':
                 append_token(token_stream, string());
                 break;
+            case ' ':
+            case '\t':
+                break;
+            case '\n':
+                lexer.line++;
+                lexer.character = 0;
+                break;
             default:
-                if( IS_NUMERIC(c) )
+                if( isdigit(c) )
                     append_token(token_stream, number());
                 else
                     append_token(token_stream, id_or_keyword());
@@ -119,9 +122,16 @@ static Token* number() {
     int size = 32;
     char* buffer = malloc(size * sizeof(char));
     int p = 0;
+    size_t location = lexer.character;
+
+    if( lexer.current == '0' && isdigit(peek()) ) {
+        printf("Numbers cannot have leading 0's: %ld:%ld\n", lexer.line, location);
+        exit(1);
+    }
+
 
     buffer[p++] = lexer.current;
-    while( IS_NUMERIC(peek()) ) {
+    while( isdigit(peek()) ) {
         if( p > size ) {
             buffer = realloc(buffer, size + 32);
             size += 32;
@@ -132,10 +142,66 @@ static Token* number() {
     buffer = realloc(buffer, p);
     buffer[p] = 0;
 
-    Token* token = new_token(TOKEN_NUMBER, buffer, lexer.line, lexer.character);
+    Token* token = new_token(TOKEN_NUMBER, buffer, lexer.line, location);
     return token;
 }
 
 
-static Token* string() { return NULL; }
-static Token* id_or_keyword() { return NULL; }
+static Token* string() {
+    int size = 64;
+    char* buffer = malloc(size * sizeof(char));
+    int p = 0;
+    size_t location = lexer.character;
+
+    buffer[p++] = lexer.current;
+    char c = next_char();
+    while( c != EOF && c != '\n' ) {
+        if( p > size ) {
+            buffer = realloc(buffer, size + 64);
+            size += 64;
+        }
+
+        buffer[p++] = c;
+        if( c == '"' ) // We just added this
+            break;
+
+        c = next_char();
+    }
+
+    if( c == EOF || c == '\n' ) {
+        printf("Unexpected EOF or newline while reading string: %ld:%ld\n", lexer.line, lexer.character);
+        exit(1);
+    }
+
+    buffer = realloc(buffer, p);
+    buffer[p] = 0;
+
+
+    Token* token = new_token(TOKEN_NUMBER, buffer, lexer.line, location);
+    return token;
+}
+
+
+static Token* id_or_keyword() {
+    int size = 64;
+    char* buffer = malloc(size * sizeof(char));
+    int p = 0;
+    size_t location = lexer.character;
+
+    buffer[p++] = lexer.current;
+    while( isalnum(peek()) || peek() == '_' ) {
+        if( p > size ) {
+            buffer = realloc(buffer, size + 64);
+            size += 64;
+        }
+
+        buffer[p++] = next_char();
+    }
+
+    buffer = realloc(buffer, p);
+    buffer[p] = 0;
+
+
+    Token* token = new_token(TOKEN_IDENTIFIER, buffer, lexer.line, location);
+    return token;
+}
