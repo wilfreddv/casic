@@ -27,11 +27,13 @@ enum TokenType {
 
     TOKEN_COLON,        // :
     TOKEN_SEMICOLON,    // ;
+    TOKEN_LAST          // Signal end of enum
 };
 
 
 enum KeywordType {
     KEYWORD_PRINT, // PRINT
+    KEYWORD_JUMP, // JUMP
     KEYWORD_LAST, // Signal end of enum
 };
 
