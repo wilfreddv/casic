@@ -36,6 +36,9 @@ static inline char peek() {
 }
 
 
+static inline void to_upper(char* string, size_t length);
+static inline int is_keyword(const char* string);
+
 static Token* number();
 static Token* string();
 static Token* id_or_keyword();
@@ -202,6 +205,27 @@ static Token* id_or_keyword() {
     buffer[p] = 0;
 
 
-    Token* token = new_token(TOKEN_IDENTIFIER, buffer, lexer.line, location);
+    to_upper(buffer, p-1);
+    TokenType t = is_keyword(buffer) ? TOKEN_KEYWORD : TOKEN_IDENTIFIER;
+
+    Token* token = new_token(t, buffer, lexer.line, location);
     return token;
+}
+
+
+static inline void to_upper(char* string, size_t length) {
+    for( int i=0; i<=length; i++ ) {
+        string[i] = toupper(string[i]);
+    }
+}
+
+
+static inline int is_keyword(const char* string) {
+    for( int i=0; i<KEYWORD_LAST; i++ ) {
+        if( strcmp(string, KEYWORDS[i]) == 0 ) {
+            return 1;
+        }
+    }
+
+    return 0;
 }

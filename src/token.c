@@ -4,6 +4,11 @@
 #include <stdlib.h>
 
 
+const char* KEYWORDS[KEYWORD_LAST] = {
+    "PRINT",
+};
+
+
 TokenStream* new_tokenstream() {
     TokenStream* stream = malloc(sizeof(TokenStream));
 

@@ -1,8 +1,10 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 
+#include <typedef.h>
 
-typedef enum TokenType {
+
+enum TokenType {
     TOKEN_IDENTIFIER,
     TOKEN_KEYWORD,
 
@@ -25,22 +27,31 @@ typedef enum TokenType {
 
     TOKEN_COLON,        // :
     TOKEN_SEMICOLON,    // ;
-} TokenType;
+};
 
 
-typedef struct Token {
+enum KeywordType {
+    KEYWORD_PRINT, // PRINT
+    KEYWORD_LAST, // Signal end of enum
+};
+
+
+extern const char* KEYWORDS[KEYWORD_LAST];
+
+
+struct Token {
     TokenType type;
     const char* lexeme;
     unsigned short line;
     unsigned short character;
-} Token;
+};
 
 
-typedef struct TokenStream {
+struct TokenStream {
     Token* token;
     struct TokenStream* next;
     struct TokenStream* tail;
-} TokenStream;
+};
 
 
 TokenStream* new_tokenstream();
