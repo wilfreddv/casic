@@ -10,8 +10,6 @@ const char* KEYWORDS[KEYWORD_LAST] = {
 };
 
 
-static const char* t2str(TokenType type);
-
 
 TokenStream* new_tokenstream() {
     TokenStream* stream = malloc(sizeof(TokenStream));
@@ -74,7 +72,7 @@ void print_token(Token* token) {
 }
 
 
-static const char* t2str(TokenType type) {
+const char* t2str(TokenType type) {
     switch(type) {
         case TOKEN_IDENTIFIER: return "IDENTIFIER";
         case TOKEN_KEYWORD: return "KEYWORD";
@@ -94,6 +92,7 @@ static const char* t2str(TokenType type) {
         case TOKEN_CURLY_CLOSE: return "CURLY_CLOSE";
         case TOKEN_COLON: return "COLON";
         case TOKEN_SEMICOLON: return "SEMICOLON";
+        case TOKEN_EOF: return "EOF";
         default: return "UNDEFINED";
     }
 }

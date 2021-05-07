@@ -103,6 +103,7 @@ TokenStream* tokenize(const char* filename, const char* file, size_t filesize) {
                 break;
             case ' ':
             case '\t':
+            case '\r':
                 break;
             case '\n':
                 lexer.line++;
@@ -114,9 +115,10 @@ TokenStream* tokenize(const char* filename, const char* file, size_t filesize) {
                 else
                     append_token(token_stream, id_or_keyword());
                 break;
-        }
-    }
+        } // switch
+    } // while
 
+    append_token(token_stream, new_token(TOKEN_EOF, "EOF", lexer.line, lexer.character));
     return token_stream;
 }
 

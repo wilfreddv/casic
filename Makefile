@@ -2,8 +2,9 @@ CC     = gcc
 INCLUDE= include
 SOURCE = $(wildcard src/*.c)
 OBJS   = $(SOURCE:src/%.c=build/%.o)
-C_FLAGS= -c -Wall -Werror -Wunused -g -I$(INCLUDE)
-#C_FLAGS= -c -I$(INCLUDE)
+#C_FLAGS= -c -Wall -Werror -g -I$(INCLUDE)
+C_FLAGS= -c -Wall -g -I$(INCLUDE)
+L_FLAGS=
 TARGET = casic
 
 
@@ -14,15 +15,21 @@ all: $(TARGET)
 
 
 $(TARGET): $(OBJS)
-	$(CC) -o $@ $^
+	$(CC) $(L_FLAGS) -o $@ $^
 
 
 build:
 	@mkdir -p build
 
 
+.PHONY: test
+test: $(TARGET)
+	./casic test/test.casic
+
+
 build/%.o: src/%.c | build
 	$(CC) $(C_FLAGS) $< -o $@
+
 
 
 .PHONY: clean

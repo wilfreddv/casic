@@ -2,16 +2,45 @@
 #define AST_H
 
 #include <token.h>
+#include <typedef.h>
 
 
-typedef struct Node {
-    Token* token;
-    struct Node* left;
-    struct Node* right;
-} Node;
+enum BINARY_OP {
+    PLUS,
+    MINUS,
+    DIVIDE,
+    MULTIPLY,
+    ASSIGN,
+    EQUALS,
+};
 
 
-typedef Node* AST;
+struct BinaryNode {
+    enum BINARY_OP operator;
+    AST_Node* left;
+    AST_Node* right;
+};
+
+
+struct VarNode {
+    const char* identifier;
+};
+
+
+struct ConstNode {
+    const char* value;
+};
+
+
+struct CompoundNode {
+    int no_children;
+    AST_Node** children;
+};
+
+
+struct AST {
+    CompoundNode* program;
+};
 
 
 #endif // AST_H

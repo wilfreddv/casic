@@ -27,14 +27,16 @@ enum TokenType {
 
     TOKEN_COLON,        // :
     TOKEN_SEMICOLON,    // ;
-    TOKEN_LAST          // Signal end of enum
+
+    TOKEN_EOF,  // Terminating token
+    TOKEN_LAST  // Signal end of enum
 };
 
 
 enum KeywordType {
-    KEYWORD_PRINT, // PRINT
-    KEYWORD_JUMP, // JUMP
-    KEYWORD_LAST, // Signal end of enum
+    KEYWORD_PRINT,
+    KEYWORD_JUMP,
+    KEYWORD_LAST   // Signal end of enum
 };
 
 
@@ -62,6 +64,8 @@ Token* new_token(TokenType type, const char* lexeme, unsigned short line, unsign
 
 void print_tokens(TokenStream* stream);
 void print_token(Token* token);
+
+const char* t2str(TokenType type);
 
 
 #endif // TOKEN_H

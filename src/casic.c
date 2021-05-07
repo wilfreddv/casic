@@ -1,5 +1,6 @@
 #include <AST.h>
 #include <lexer.h>
+#include <parser.h>
 #include <token.h>
 
 #include <stdio.h>
@@ -33,4 +34,5 @@ int main(int argc, char** argv) {
     
     TokenStream* tokens = tokenize(argv[1], file, filesize);
     print_tokens(tokens);
+    generate_ast(tokens);
 }

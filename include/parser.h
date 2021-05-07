@@ -8,7 +8,7 @@
 #include <stddef.h>
 
 
-AST create_ast(TokenStream* tokens);
+AST generate_ast(TokenStream* tokens);
 
 
 #endif // PARSER_H

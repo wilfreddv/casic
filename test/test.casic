@@ -1,4 +1,3 @@
-label:
-a = "Hello"
+a = "Hello world"
+REM print a thing!
 PRINT a
-jump label
