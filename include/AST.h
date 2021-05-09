@@ -38,9 +38,4 @@ struct CompoundNode {
 };
 
 
-struct AST {
-    CompoundNode* program;
-};
-
-
 #endif // AST_H

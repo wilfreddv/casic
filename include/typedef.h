@@ -12,7 +12,7 @@ typedef struct BinaryNode BinaryNode;
 typedef struct VarNode VarNode;
 typedef struct ConstNode ConstNode;
 typedef struct CompoundNode CompoundNode;
-typedef struct AST* AST;
+typedef struct CompoundNode AST;
 
 
 #endif // TYPEDEF_H
