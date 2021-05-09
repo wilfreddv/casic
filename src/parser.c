@@ -32,7 +32,8 @@ TokenStream* g_current;
 
 
 AST* generate_ast(TokenStream* tokens) {
-    AST* root = malloc(sizeof(AST));
+    AST* root = malloc(sizeof(struct AST));
+    root->program = new_compound_node();
 
     return root;
 }
