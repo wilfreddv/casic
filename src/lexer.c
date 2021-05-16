@@ -98,6 +98,9 @@ TokenStream* tokenize(const char* filename, const char* file, size_t filesize) {
             case ';':
                 append_token(token_stream, new_token(TOKEN_SEMICOLON, ";", lexer.line, lexer.character));
                 break;
+            case '!':
+                append_token(token_stream, new_token(TOKEN_EXCLAMATION_MARK, "!", lexer.line, lexer.character));
+                break;
             case '"':
                 append_token(token_stream, string());
                 break;

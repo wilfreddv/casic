@@ -27,6 +27,7 @@ enum TokenType {
 
     TOKEN_COLON,        // :
     TOKEN_SEMICOLON,    // ;
+    TOKEN_EXCLAMATION_MARK, // !
 
     TOKEN_EOF,  // Terminating token
     TOKEN_LAST  // Signal end of enum

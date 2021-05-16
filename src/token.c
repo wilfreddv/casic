@@ -92,6 +92,7 @@ const char* t2str(TokenType type) {
         case TOKEN_CURLY_CLOSE: return "CURLY_CLOSE";
         case TOKEN_COLON: return "COLON";
         case TOKEN_SEMICOLON: return "SEMICOLON";
+        case TOKEN_EXCLAMATION_MARK: return "EXCLAMATION_MARK";
         case TOKEN_EOF: return "EOF";
         default: return "UNDEFINED";
     }
