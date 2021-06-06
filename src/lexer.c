@@ -185,7 +185,7 @@ static Token* string() {
     buffer[p] = 0;
 
 
-    Token* token = new_token(TOKEN_NUMBER, buffer, lexer.line, location);
+    Token* token = new_token(TOKEN_STRING, buffer, lexer.line, location);
     return token;
 }
 
