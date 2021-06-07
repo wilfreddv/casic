@@ -74,6 +74,36 @@ TokenStream* tokenize(const char* filename, const char* file, size_t filesize) {
                     append_token(token_stream, token);
                 }
                 break;
+            case '>':
+                {
+                    Token* token;
+                    if( peek() == '=' )
+                        token = new_token(TOKEN_GREQ, ">=", lexer.line, lexer.character);
+                    else
+                        token = new_token(TOKEN_GREATER, ">", lexer.line, lexer.character);
+                    append_token(token_stream, token);
+                }
+                break;
+            case '<':
+                {
+                    Token* token;
+                    if( peek() == '=' )
+                        token = new_token(TOKEN_SMEQ, "<=", lexer.line, lexer.character);
+                    else
+                        token = new_token(TOKEN_SMALLER, "<", lexer.line, lexer.character);
+                    append_token(token_stream, token);
+                }
+                break;
+            case '!':
+                {
+                    Token* token;
+                    if( peek() == '=' )
+                        token = new_token(TOKEN_NEQ, "!=", lexer.line, lexer.character);
+                    else
+                        token = new_token(TOKEN_EXCLAMATION_MARK, "!", lexer.line, lexer.character);
+                    append_token(token_stream, token);
+                }
+                break;
             case '(':
                 append_token(token_stream, new_token(TOKEN_PAREN_OPEN, "(", lexer.line, lexer.character));
                 break;
@@ -98,9 +128,6 @@ TokenStream* tokenize(const char* filename, const char* file, size_t filesize) {
             case ';':
                 append_token(token_stream, new_token(TOKEN_SEMICOLON, ";", lexer.line, lexer.character));
                 break;
-            case '!':
-                append_token(token_stream, new_token(TOKEN_EXCLAMATION_MARK, "!", lexer.line, lexer.character));
-                break;
             case '"':
                 append_token(token_stream, string());
                 break;
@@ -116,7 +143,10 @@ TokenStream* tokenize(const char* filename, const char* file, size_t filesize) {
                 if( isdigit(c) )
                     append_token(token_stream, number());
                 else
-                    append_token(token_stream, id_or_keyword());
+                    {
+                        Token* t = id_or_keyword(); // Filter out REM
+                        if(t) append_token(token_stream, t);
+                    }
                 break;
         } // switch
     } // while
@@ -211,6 +241,14 @@ static Token* id_or_keyword() {
 
 
     to_upper(buffer, p-1);
+
+    // Skip over lines with REM
+    if(strcmp(buffer, "REM") == 0) {
+        while(peek() != '\n') next_char();
+        return NULL;
+    }
+
+
     TokenType t = is_keyword(buffer) ? TOKEN_KEYWORD : TOKEN_IDENTIFIER;
 
     Token* token = new_token(t, buffer, lexer.line, location);

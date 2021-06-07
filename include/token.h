@@ -17,6 +17,11 @@ enum TokenType {
     TOKEN_STAR,     // *
     TOKEN_ASSIGN,   // =
     TOKEN_EQUALS,   // ==
+    TOKEN_GREATER,  // >
+    TOKEN_SMALLER,  // <
+    TOKEN_GREQ,     // >=
+    TOKEN_SMEQ,     // <=
+    TOKEN_NEQ,      // !=
 
     TOKEN_PAREN_OPEN,   // (
     TOKEN_PAREN_CLOSE,  // )
@@ -36,12 +41,14 @@ enum TokenType {
 
 enum KeywordType {
     KEYWORD_PRINT,
-    KEYWORD_JUMP,
+    KEYWORD_IF,
+    KEYWORD_ELSE,
+    KEYWORD_REM,
     KEYWORD_LAST   // Signal end of enum
 };
 
 
-extern const char* KEYWORDS[KEYWORD_LAST];
+extern const char* KEYWORDS[];
 
 
 struct Token {
