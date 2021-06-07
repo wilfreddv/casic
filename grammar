@@ -1,0 +1,31 @@
+program =
+    {statement}
+
+
+statement =
+    ident "=" expr
+    | "if" condition statement ["else" statement]
+    | "print" expr
+
+
+condition = expr (">"|"<"|"=="|"<="|">=") expr
+
+
+expr = ["+"|"-"] term {("+"|"-") term}
+
+
+term = factor {("*"|"/") factor}
+
+
+factor =
+    ident
+    | literal
+    | "(" expr ")"
+
+
+literal =
+    string
+    | number
+
+
+string = " {character} "

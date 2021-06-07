@@ -3,87 +3,195 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <stdarg.h>
 
 
-typedef struct SYMBOL {
-    const char* identifier;
-    struct SYMBOL* next;
-} SYMBOL;
-
-typedef struct SYMBOL_TABLE {
-    SYMBOL* head, tail;
-} SYMBOL_TABLE;
-
-static SYMBOL_TABLE* ST;
+static Token* current = NULL;
+TokenStream* tokens = NULL;
 
 
-static int error = 0;
-
-static void compound_add_child(CompoundNode* parent, AST_Node* node);
-static BinaryNode* new_binary_node(enum BINARY_OP operator);
-static VarNode* new_var_node(const char* identifier);
-static ConstNode* new_const_node(const char* value);
-static CompoundNode* new_compound_node();
-
-static inline TokenType peek_token();
+void literal();
+void factor();
+void term();
+void expression();
+void condition();
+void statement();
+void program();
 
 
-TokenStream* g_current;
+static int got_error = 0;
 
+void error(const char* message, ...) {
+    printf("%d:%d [%s]: ", current->line, current->character,
+                           t2str(current->type));
+    
+    va_list ap;
+    va_start(ap, message);
+    vprintf(message, ap);
+    va_end(ap);
+    printf("\n");
 
-AST* generate_ast(TokenStream* tokens) {
-    AST* root = malloc(sizeof(struct AST));
-    root->program = new_compound_node();
-
-    return root;
+    got_error = 1;
 }
 
 
-static void compound_add_child(CompoundNode* parent, AST_Node* child) {
-    if( parent == NULL )
-        return;
+static inline int is_current(TokenType type) {
+    return current->type == type;
+}
 
-    parent->no_children++;
-    parent->children = realloc(parent->children, (parent->no_children * sizeof(AST_Node*)));
-    
-    if( parent->children == NULL ) {
-        printf("Failed to realloc parent->children with no_children: %d\n", parent->no_children);
-        exit(1);
+
+TokenType peek() {
+    if( tokens->next != NULL && tokens->next->token != NULL ) {
+        return tokens->next->token->type;
+    }
+    return TOKEN_LAST+1;
+}
+
+
+void next_token() {
+    if( tokens->next != NULL ) {
+        tokens = tokens->next;
+        current = tokens->token;
+    }
+    else if( current->type != TOKEN_EOF ) {
+        error("Ran out of tokens...");
+    }
+}
+
+
+int accept(TokenType type) {
+    if( current->type == type ) {
+        next_token();
+        return 1;
+    }
+    return 0;
+}
+
+
+int expect(TokenType type) {
+    if( accept(type) )
+        return 1;
+
+    error("Unexpected token. Expected `%s`", t2str(type));
+    return 0;
+}
+
+
+int accept_keyword(const char* str) {
+    if( strcmp(str, current->lexeme) == 0 ) {
+        next_token();
+        return 1;
+    }
+    return 0;
+} 
+
+
+void literal() {
+    if( !accept(TOKEN_STRING) && !accept(TOKEN_NUMBER) )
+        error("Expected literal");
+}
+
+
+void factor() {
+    if( accept(TOKEN_IDENTIFIER) ) {
+    }
+    else if( accept(TOKEN_PAREN_OPEN) ) {
+        expression();
+        expect(TOKEN_PAREN_CLOSE);
+    }
+    else {
+        literal();
+    }
+}
+
+
+void term() {
+    factor();
+
+    if( is_current(TOKEN_STAR) || is_current(TOKEN_DIVIDE) ) {
+        next_token();
+        factor();
+    }
+}
+
+
+void expression() {
+    if( is_current(TOKEN_PLUS) || is_current(TOKEN_MINUS) )
+        next_token();
+
+    term();
+
+    if( accept(TOKEN_PLUS) || accept(TOKEN_MINUS) ) {
+        term();
+    }
+}
+
+
+void condition() {
+    expression();
+    if(
+        accept(TOKEN_EQUALS)
+        || accept(TOKEN_GREATER)
+        || accept(TOKEN_SMALLER)
+        || accept(TOKEN_GREQ)
+        || accept(TOKEN_SMEQ)
+        || accept(TOKEN_NEQ)
+    ) {
+        expression();
+    }
+    else {
+        error("Expected comparison operator");
+    }
+}
+
+
+void statement() {
+    if( accept(TOKEN_IDENTIFIER) ) {
+        expect(TOKEN_ASSIGN);
+        expression();
+    }
+    else if( is_current(TOKEN_KEYWORD) ) {
+        if( accept_keyword("IF") ) {
+            condition();
+            statement();
+            if( accept_keyword("ELSE") ) {
+                statement();
+            }
+        }
+        else if( accept_keyword("PRINT") ) {
+            expression();
+        }
+    }
+    else {
+        error("Statement: syntax error (%s)", current->lexeme);
+        next_token();
     }
 
-    parent->children[parent->no_children-1] = child;
 }
 
 
-static BinaryNode* new_binary_node(enum BINARY_OP operator) {
-    BinaryNode* node = malloc(sizeof(BinaryNode));
-    node->operator = operator;
-    node->left = NULL;
-    node->right = NULL;
-    return node;
-}
-
-static VarNode* new_var_node(const char* identifier) {
-    VarNode* node = malloc(sizeof(VarNode));
-    node->identifier = identifier;
-    return node;
-}
-
-static ConstNode* new_const_node(const char* value) {
-    ConstNode* node = malloc(sizeof(ConstNode));
-    node->value = value;
-    return node;
-}
-
-static CompoundNode* new_compound_node() {
-    CompoundNode* node = malloc(sizeof(CompoundNode));
-    node->no_children = 0;
-    node->children = NULL;
-    return node;
+void program() {
+    while( !accept(TOKEN_EOF) ) {
+        statement();
+    }
 }
 
 
-static inline TokenType peek_token() {
-    if( g_current == NULL ) return -1;
-    return g_current->next->token->type;
+AST* generate_ast(TokenStream* tokenstream) {
+    tokens = tokenstream;
+    current = tokens->token;
+    AST* ast_ptr = malloc(sizeof(AST));
+    if( ast_ptr == NULL ) return NULL;
+
+    program();
+
+#ifdef DEBUG
+    if( !got_error )
+        printf("Succesfully parsed!\n");
+#endif
+
+
+
+    return ast_ptr;
 }

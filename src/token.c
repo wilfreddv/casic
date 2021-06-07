@@ -4,9 +4,11 @@
 #include <stdlib.h>
 
 
-const char* KEYWORDS[KEYWORD_LAST] = {
+const char* KEYWORDS[] = {
     "PRINT",
-    "JUMP",
+    "IF",
+    "ELSE",
+    "REM",
 };
 
 
@@ -84,6 +86,11 @@ const char* t2str(TokenType type) {
         case TOKEN_STAR: return "STAR";
         case TOKEN_ASSIGN: return "ASSIGN";
         case TOKEN_EQUALS: return "EQUALS";
+        case TOKEN_GREATER: return "GREATER";
+        case TOKEN_SMALLER: return "SMALLER";
+        case TOKEN_GREQ: return "GREATER_EQUAL";
+        case TOKEN_SMEQ: return "SMALLER_EQUAL";
+        case TOKEN_NEQ: return "NOT_EQUAL";
         case TOKEN_PAREN_OPEN: return "PAREN_OPEN";
         case TOKEN_PAREN_CLOSE: return "PAREN_CLOSE";
         case TOKEN_SQUARE_OPEN: return "SQUARE_OPEN";
