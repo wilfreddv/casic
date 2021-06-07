@@ -2,8 +2,7 @@ CC     = gcc
 INCLUDE= include
 SOURCE = $(wildcard src/*.c)
 OBJS   = $(SOURCE:src/%.c=build/%.o)
-#C_FLAGS= -c -Wall -Werror -g -I$(INCLUDE)
-C_FLAGS= -c -Wall -g -I$(INCLUDE)
+C_FLAGS= -c -Wall -Werror -g -I$(INCLUDE) -DDEBUG
 L_FLAGS=
 TARGET = casic
 
