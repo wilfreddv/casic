@@ -15,6 +15,14 @@ enum BINARY_OP {
 };
 
 
+enum NodeTypes {
+    NODE_BINARY,
+    NODE_VAR,
+    NODE_CONST,
+    NODE_COMPOUND,
+};
+
+
 struct BinaryNode {
     enum BINARY_OP operator;
     AST_Node* left;
@@ -23,7 +31,7 @@ struct BinaryNode {
 
 
 struct VarNode {
-    const char* identifier;
+    const char* name;
 };
 
 
@@ -39,9 +47,27 @@ struct CompoundNode {
 
 
 struct AST {
-    CompoundNode* program;
+    AST_Node* program;
 };
 
+
+struct AST_Node {
+    enum NodeTypes type;
+
+    union Node {
+        BinaryNode binary_node;
+        VarNode var_node;
+        ConstNode const_node;
+        CompoundNode compound_node;
+    } node;
+};
+
+
+AST* new_ast();
+AST_Node* new_ast_node(enum NodeTypes type, ...);
+void compound_node_add_child(CompoundNode* parent, AST_Node* child);
+
+void print_ast(AST* root);
 
 
 #endif // AST_H

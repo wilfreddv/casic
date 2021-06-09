@@ -7,7 +7,7 @@ typedef struct TokenStream TokenStream;
 typedef enum TokenType TokenType;
 typedef enum KeywordType KeywordType;
 
-typedef void AST_Node;
+typedef struct AST_Node AST_Node;
 typedef struct BinaryNode BinaryNode;
 typedef struct VarNode VarNode;
 typedef struct ConstNode ConstNode;

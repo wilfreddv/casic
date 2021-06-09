@@ -11,6 +11,9 @@ static Token* current = NULL;
 TokenStream* tokens = NULL;
 
 
+AST* ast_ptr;
+
+
 void literal();
 void factor();
 void term();
@@ -181,17 +184,15 @@ void program() {
 AST* generate_ast(TokenStream* tokenstream) {
     tokens = tokenstream;
     current = tokens->token;
-    AST* ast_ptr = malloc(sizeof(AST));
-    if( ast_ptr == NULL ) return NULL;
 
+    ast_ptr = new_ast();
+    
     program();
 
 #ifdef DEBUG
     if( !got_error )
         printf("Succesfully parsed!\n");
 #endif
-
-
 
     return ast_ptr;
 }
