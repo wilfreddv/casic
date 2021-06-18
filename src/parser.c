@@ -7,8 +7,9 @@
 #include <stdarg.h>
 
 
-static Token* current = NULL;
-TokenStream* tokens = NULL;
+static Token* g_current = NULL;
+static Token* g_previous = NULL;
+TokenStream* g_tokens = NULL;
 
 
 AST* ast_ptr;
@@ -22,12 +23,14 @@ void condition();
 void statement();
 void program();
 
+static void add_node() {}
+
 
 static int got_error = 0;
 
 void error(const char* message, ...) {
-    printf("%d:%d [%s]: ", current->line, current->character,
-                           t2str(current->type));
+    printf("%d:%d [%s]: ", g_current->line, g_current->character,
+                           t2str(g_current->type));
     
     va_list ap;
     va_start(ap, message);
@@ -40,31 +43,33 @@ void error(const char* message, ...) {
 
 
 static inline int is_current(TokenType type) {
-    return current->type == type;
+    return g_current->type == type;
 }
 
 
 TokenType peek() {
-    if( tokens->next != NULL && tokens->next->token != NULL ) {
-        return tokens->next->token->type;
+    if( g_tokens->next != NULL && g_tokens->next->token != NULL ) {
+        return g_tokens->next->token->type;
     }
     return TOKEN_LAST+1;
 }
 
 
 void next_token() {
-    if( tokens->next != NULL ) {
-        tokens = tokens->next;
-        current = tokens->token;
+    if( g_tokens->next != NULL ) {
+        g_previous = g_current;
+        g_tokens = g_tokens->next;
+        g_current = g_tokens->token;
     }
-    else if( current->type != TOKEN_EOF ) {
+    else if( g_current->type != TOKEN_EOF ) {
         error("Ran out of tokens...");
     }
 }
 
 
 int accept(TokenType type) {
-    if( current->type == type ) {
+    if( g_current->type == type ) {
+        add_node();
         next_token();
         return 1;
     }
@@ -82,7 +87,7 @@ int expect(TokenType type) {
 
 
 int accept_keyword(const char* str) {
-    if( strcmp(str, current->lexeme) == 0 ) {
+    if( strcmp(str, g_current->lexeme) == 0 ) {
         next_token();
         return 1;
     }
@@ -167,7 +172,7 @@ void statement() {
         }
     }
     else {
-        error("Statement: syntax error (%s)", current->lexeme);
+        error("Statement: syntax error (%s)", g_current->lexeme);
         next_token();
     }
 
@@ -182,8 +187,8 @@ void program() {
 
 
 AST* generate_ast(TokenStream* tokenstream) {
-    tokens = tokenstream;
-    current = tokens->token;
+    g_tokens = tokenstream;
+    g_current = g_tokens->token;
 
     ast_ptr = new_ast();
     
