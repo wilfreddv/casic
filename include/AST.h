@@ -6,12 +6,14 @@
 
 
 enum BINARY_OP {
-    PLUS,
-    MINUS,
-    DIVIDE,
-    MULTIPLY,
-    ASSIGN,
-    EQUALS,
+    BIN_PLUS,
+    BIN_MINUS,
+    BIN_DIVIDE,
+    BIN_MULTIPLY,
+    BIN_ASSIGN,
+    BIN_EQUALS,
+
+    BIN_LAST,
 };
 
 
@@ -64,7 +66,7 @@ struct AST_Node {
 
 
 AST* new_ast();
-AST_Node* new_ast_node(enum NodeTypes type, ...);
+AST_Node* new_ast_node(enum NodeTypes type);
 void compound_node_add_child(CompoundNode* parent, AST_Node* child);
 
 void print_ast(AST* root);
