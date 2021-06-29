@@ -53,7 +53,7 @@ extern const char* KEYWORDS[];
 
 struct Token {
     TokenType type;
-    const char* lexeme;
+    char* lexeme;
     unsigned short line;
     unsigned short character;
 };
@@ -68,7 +68,7 @@ struct TokenStream {
 
 TokenStream* new_tokenstream();
 int append_token(TokenStream* stream, Token* token);
-Token* new_token(TokenType type, const char* lexeme, unsigned short line, unsigned short character);
+Token* new_token(TokenType type, char* lexeme, unsigned short line, unsigned short character);
 
 void print_tokens(TokenStream* stream);
 void print_token(Token* token);

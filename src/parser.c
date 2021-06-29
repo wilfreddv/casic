@@ -11,29 +11,66 @@ static Token* g_current = NULL;
 static Token* g_previous = NULL;
 TokenStream* g_tokens = NULL;
 
-
 AST* ast_ptr;
 
+SymbolTable* g_symbol;
 
-void literal();
-void factor();
-void term();
-void expression();
-void condition();
-void statement();
-void program();
 
-static void add_node() {}
+AST_Node* literal();
+AST_Node* factor();
+AST_Node* term();
+AST_Node* expression();
+AST_Node* condition();
+AST_Node* statement();
+AST_Node* program();
+
+
+void error(const char* message, int line, int character, ...);
+
+static int find_symbol(const char* name) {
+    if( g_symbol == NULL ) return -1;
+
+    for(int i=0; i<g_symbol->size; i++) {
+        if( strcmp(g_symbol->symbols[i].name, name) == 0 )
+            return i;
+    }
+
+    return -1;
+}
+static void add_symbol(const char* name, const char* type) {
+    if( g_symbol == NULL ) return;
+
+    if( g_symbol->size == 0 ) {
+        g_symbol->size++;
+        g_symbol->symbols = realloc(g_symbol->symbols, sizeof(struct Symbol)*g_symbol->size);
+        g_symbol->symbols[0] = (struct Symbol){name, type};
+        return;
+    }
+
+    for(int i=0; i<g_symbol->size; i++) {
+        int idx;
+        if( (idx = find_symbol(name)) > -1 ) {
+            if( g_symbol->symbols[idx].type != type ) {
+                error("Reassignment with different type for identifier '%s'. (%s to %s)",
+                    g_previous->line, g_previous->character, name, g_symbol->symbols[idx].type, type);
+            }
+        }
+        else {
+            g_symbol->size++;
+            g_symbol->symbols = realloc(g_symbol->symbols, sizeof(struct Symbol)*g_symbol->size);
+            g_symbol->symbols[g_symbol->size-1] = (struct Symbol){name, type};
+        }
+    }
+}
 
 
 static int got_error = 0;
 
-void error(const char* message, ...) {
-    printf("%d:%d [%s]: ", g_current->line, g_current->character,
-                           t2str(g_current->type));
+void error(const char* message, int line, int character, ...) {
+    printf("%d:%d: ", line, character);
     
     va_list ap;
-    va_start(ap, message);
+    va_start(ap, character);
     vprintf(message, ap);
     va_end(ap);
     printf("\n");
@@ -44,6 +81,10 @@ void error(const char* message, ...) {
 
 static inline int is_current(TokenType type) {
     return g_current->type == type;
+}
+
+static inline int is_previous(TokenType type) {
+    return g_previous->type == type;
 }
 
 
@@ -62,14 +103,13 @@ void next_token() {
         g_current = g_tokens->token;
     }
     else if( g_current->type != TOKEN_EOF ) {
-        error("Ran out of tokens...");
+        error("Ran out of tokens...", g_current->line, g_current->character);
     }
 }
 
 
 int accept(TokenType type) {
     if( g_current->type == type ) {
-        add_node();
         next_token();
         return 1;
     }
@@ -81,7 +121,7 @@ int expect(TokenType type) {
     if( accept(type) )
         return 1;
 
-    error("Unexpected token. Expected `%s`", t2str(type));
+    error("Unexpected token. Expected `%s`", g_current->line, g_current->character, t2str(type));
     return 0;
 }
 
@@ -95,49 +135,75 @@ int accept_keyword(const char* str) {
 } 
 
 
-void literal() {
+AST_Node* literal() {
     if( !accept(TOKEN_STRING) && !accept(TOKEN_NUMBER) )
-        error("Expected literal");
+        error("Expected literal", g_current->line, g_current->character);
+
+    AST_Node* node = new_ast_node(NODE_CONST);
+    node->node.const_node.value = g_previous->lexeme;
+    return node;
 }
 
 
-void factor() {
+AST_Node* factor() {
     if( accept(TOKEN_IDENTIFIER) ) {
+        // TODO: could be function possible??
+        if( find_symbol(g_previous->lexeme) == -1 )
+            error("Reference to undeclared symbol '%s'", g_previous->line, g_previous->character, g_previous->lexeme);
+        AST_Node* node = new_ast_node(NODE_VAR);
+        node->node.var_node.name = g_previous->lexeme;
+        return node;
     }
     else if( accept(TOKEN_PAREN_OPEN) ) {
-        expression();
-        expect(TOKEN_PAREN_CLOSE);
+        AST_Node* node = expression();
+        if( !expect(TOKEN_PAREN_CLOSE) ) return NULL;
+        return node;
     }
     else {
-        literal();
+        return literal();
     }
 }
 
 
-void term() {
-    factor();
+AST_Node* term() {
+    AST_Node* l_node = factor();
 
     if( is_current(TOKEN_STAR) || is_current(TOKEN_DIVIDE) ) {
         next_token();
-        factor();
+        AST_Node* node = new_ast_node(NODE_BINARY);
+        node->node.binary_node.operator = strcmp(g_previous->lexeme, "*") == 0 ? BIN_MULTIPLY : BIN_DIVIDE;
+        AST_Node* r_node = factor();
+        node->node.binary_node.left = l_node;
+        node->node.binary_node.right = r_node;
+        return node;
     }
+
+    return l_node;
 }
 
 
-void expression() {
-    if( is_current(TOKEN_PLUS) || is_current(TOKEN_MINUS) )
-        next_token();
-
-    term();
+AST_Node* expression() {
+    AST_Node* l_node, * expr_node;
+    
+    l_node = term();
 
     if( accept(TOKEN_PLUS) || accept(TOKEN_MINUS) ) {
-        term();
+        expr_node = new_ast_node(NODE_BINARY);
+        expr_node->node.binary_node.operator = strcmp(g_previous->lexeme, "+") == 0 ? BIN_PLUS : BIN_MINUS;
+        expr_node->node.binary_node.left = l_node;
+        expr_node->node.binary_node.right = expression();
+        return expr_node;
     }
+
+    return l_node;
 }
 
 
-void condition() {
-    expression();
+AST_Node* condition() {
+    AST_Node* node = new_ast_node(NODE_BINARY);
+    node->node.binary_node.left = expression();
+
+    // FIX THIS
     if(
         accept(TOKEN_EQUALS)
         || accept(TOKEN_GREATER)
@@ -146,53 +212,100 @@ void condition() {
         || accept(TOKEN_SMEQ)
         || accept(TOKEN_NEQ)
     ) {
-        expression();
+        enum BINARY_OP operator;
+        switch( g_previous->type ) {
+            case TOKEN_EQUALS:
+                operator = BIN_EQUALS;
+                break;
+            case TOKEN_GREATER:
+                operator = BIN_GREATER;
+                break;
+            case TOKEN_SMALLER:
+                operator = BIN_SMALLER;
+                break;
+            case TOKEN_GREQ:
+                operator = BIN_GREQ;
+                break;
+            case TOKEN_SMEQ:
+                operator = BIN_SMEQ;
+                break;
+            case TOKEN_NEQ:
+                operator = BIN_NEQ;
+                break;
+            default:
+                operator = BIN_LAST;
+        }
+        node->node.binary_node.operator = operator;
+        node->node.binary_node.right = expression();
     }
     else {
-        error("Expected comparison operator");
+        error("Expected comparison operator", g_current->line, g_current->character);
     }
+
+    return node;
 }
 
 
-void statement() {
+AST_Node* statement() {
+    AST_Node* node;
+    
     if( accept(TOKEN_IDENTIFIER) ) {
+        node = new_ast_node(NODE_BINARY);
+        AST_Node* c_node = new_ast_node(NODE_VAR);
+        c_node->node.var_node.name = g_previous->lexeme;
+        node->node.binary_node.left = c_node;
+        node->node.binary_node.operator = BIN_ASSIGN;
+
         expect(TOKEN_ASSIGN);
-        expression();
+        add_symbol(c_node->node.var_node.name, t2str(g_current->type));
+        node->node.binary_node.right = expression();
     }
     else if( is_current(TOKEN_KEYWORD) ) {
         if( accept_keyword("IF") ) {
-            condition();
-            statement();
+            node = new_ast_node(NODE_IF);
+            node->node.if_node.condition = condition();
+            node->node.if_node._if = statement();
             if( accept_keyword("ELSE") ) {
-                statement();
+                node->node.if_node._else = statement();
             }
         }
+        // TODO: Function and keyword handling should be better
         else if( accept_keyword("PRINT") ) {
-            expression();
+            node = new_ast_node(NODE_CALL);
+            node->node.call_node.instruction = g_previous->lexeme;
+            compound_node_add_child(&node->node.call_node.args->node.compound_node, expression());
         }
     }
     else {
-        error("Statement: syntax error (%s)", g_current->lexeme);
+        error("Statement: syntax error (%s)", g_current->line, g_current->character, g_current->lexeme);
         next_token();
     }
-
+    
+    return node;
 }
 
 
-void program() {
+AST_Node* program() {
+    AST_Node* p = new_ast_node(NODE_COMPOUND);
+
     while( !accept(TOKEN_EOF) ) {
-        statement();
+        compound_node_add_child(&p->node.compound_node, statement());
     }
+
+    return p;
 }
 
 
 AST* generate_ast(TokenStream* tokenstream) {
     g_tokens = tokenstream;
     g_current = g_tokens->token;
+    g_symbol = malloc(sizeof(SymbolTable));
+    g_symbol->size = 0;
+    g_symbol->symbols = NULL;
 
     ast_ptr = new_ast();
     
-    program();
+    ast_ptr->program = program();
 
 #ifdef DEBUG
     if( !got_error )

@@ -47,7 +47,7 @@ int append_token(TokenStream* stream, Token* token) {
 }
 
 
-Token* new_token(TokenType type, const char* lexeme, unsigned short line, unsigned short character) {
+Token* new_token(TokenType type, char* lexeme, unsigned short line, unsigned short character) {
     Token* token = malloc(sizeof(Token));
 
     *token = (Token){type, lexeme, line, character};

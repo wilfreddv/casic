@@ -5,6 +5,8 @@
 #include <ctype.h>
 
 
+// FIXME: I hang when a program ends with REM
+
 
 struct Lexer {
     const char* filename;
@@ -35,6 +37,12 @@ static inline char peek() {
     return lexer.ifp+1 < lexer.filesize ? lexer.file[lexer.ifp+1] : -1;
 }
 
+static inline char peek_no_whitespace() {
+    int ifp;
+    for(ifp=lexer.ifp+1; ifp<lexer.filesize && lexer.file[ifp]==' '; ifp++) ;
+    return ifp<lexer.filesize ? lexer.file[ifp] : -1;
+}
+
 
 static inline void to_upper(char* string, size_t length);
 static inline int is_keyword(const char* string);
@@ -53,10 +61,21 @@ TokenStream* tokenize(const char* filename, const char* file, size_t filesize) {
 
         switch(c) {
             case '+':
-                append_token(token_stream, new_token(TOKEN_PLUS, "+", lexer.line, lexer.character));
+                if( isdigit(peek_no_whitespace()) ) {
+                    next_char();
+                    Token* t = number();
+                    append_token(token_stream, t);
+                }
+                else
+                    append_token(token_stream, new_token(TOKEN_PLUS, "+", lexer.line, lexer.character));
                 break;
             case '-':
-                append_token(token_stream, new_token(TOKEN_MINUS, "-", lexer.line, lexer.character));
+                if( isdigit(peek_no_whitespace()) && token_stream->tail->token->type != TOKEN_NUMBER ) {
+                    Token* t = number();
+                    append_token(token_stream, t);
+                }
+                else
+                    append_token(token_stream, new_token(TOKEN_MINUS, "-", lexer.line, lexer.character));
                 break;
             case '/':
                 append_token(token_stream, new_token(TOKEN_DIVIDE, "/", lexer.line, lexer.character));
@@ -244,7 +263,7 @@ static Token* id_or_keyword() {
 
     // Skip over lines with REM
     if(strcmp(buffer, "REM") == 0) {
-        while(peek() != '\n') next_char();
+        while(peek() != '\n' && peek() != -1) next_char();
         return NULL;
     }
 

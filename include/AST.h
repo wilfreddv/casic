@@ -13,6 +13,12 @@ enum BINARY_OP {
     BIN_ASSIGN,
     BIN_EQUALS,
 
+    BIN_GREATER,
+    BIN_SMALLER,
+    BIN_GREQ,
+    BIN_SMEQ,
+    BIN_NEQ,
+
     BIN_LAST,
 };
 
@@ -22,6 +28,8 @@ enum NodeTypes {
     NODE_VAR,
     NODE_CONST,
     NODE_COMPOUND,
+    NODE_IF,
+    NODE_CALL,
 };
 
 
@@ -42,6 +50,19 @@ struct ConstNode {
 };
 
 
+struct IfNode  {
+    AST_Node* condition;
+    AST_Node* _if;
+    AST_Node* _else;
+};
+
+
+struct CallNode {
+    const char* instruction;
+    AST_Node* args;
+};
+
+
 struct CompoundNode {
     int no_children;
     AST_Node** children;
@@ -55,12 +76,15 @@ struct AST {
 
 struct AST_Node {
     enum NodeTypes type;
+    void (*visit)(AST_Node* self);
 
     union Node {
         BinaryNode binary_node;
         VarNode var_node;
         ConstNode const_node;
         CompoundNode compound_node;
+        IfNode if_node;
+        CallNode call_node;
     } node;
 };
 

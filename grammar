@@ -11,7 +11,7 @@ statement =
 condition = expr (">"|"<"|"=="|"<="|">=") expr
 
 
-expr = ["+"|"-"] term {("+"|"-") term}
+expr = term {("+"|"-") expr}
 
 
 term = factor {("*"|"/") factor}

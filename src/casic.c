@@ -7,6 +7,10 @@
 #include <stdlib.h>
 
 
+static void use(void* x) {
+
+}
+
 int main(int argc, char** argv) {
     if( argc != 2 ) {
         printf("usage: %s INPUTFILE\n", argv[0]);
@@ -33,6 +37,8 @@ int main(int argc, char** argv) {
 
     
     TokenStream* tokens = tokenize(argv[1], file, filesize);
-    // print_tokens(tokens);
-    generate_ast(tokens);
+    print_tokens(tokens);
+    AST* ast = generate_ast(tokens);
+    print_ast(ast);
+    use(ast);    
 }
