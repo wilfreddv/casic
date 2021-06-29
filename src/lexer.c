@@ -61,7 +61,7 @@ TokenStream* tokenize(const char* filename, const char* file, size_t filesize) {
 
         switch(c) {
             case '+':
-                if( isdigit(peek_no_whitespace()) ) {
+                if( isdigit(peek_no_whitespace()) && token_stream->tail->token->type != TOKEN_NUMBER ) {
                     next_char();
                     Token* t = number();
                     append_token(token_stream, t);
