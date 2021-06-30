@@ -9,6 +9,7 @@ set(SOURCES
     src/lexer.c
     src/token.c
     src/parser.c
+    src/intermediate.c
 )
 
 add_executable(casic ${SOURCES})
@@ -19,5 +20,11 @@ target_include_directories(casic PRIVATE include)
 add_custom_target(test
     DEPENDS casic
     COMMAND ./casic ${CMAKE_SOURCE_DIR}/test/test.casic
+    USES_TERMINAL
+)
+
+add_custom_target(test-no-compile
+    DEPENDS casic
+    COMMAND ./casic ${CMAKE_SOURCE_DIR}/test/test.casic -S
     USES_TERMINAL
 )

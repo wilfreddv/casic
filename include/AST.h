@@ -4,6 +4,20 @@
 #include <token.h>
 #include <typedef.h>
 
+#include <stddef.h>
+
+
+struct Symbol {
+    const char* name;
+    const char* type;
+};
+
+
+typedef struct _S_Table {
+    size_t size;
+    struct Symbol* symbols;
+} SymbolTable;
+
 
 enum BINARY_OP {
     BIN_PLUS,
@@ -70,6 +84,7 @@ struct CompoundNode {
 
 
 struct AST {
+    SymbolTable* symbol_table;
     AST_Node* program;
 };
 

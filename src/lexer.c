@@ -195,7 +195,7 @@ static Token* number() {
         }
         buffer[p++] = next_char();
     }
-    
+
     buffer = realloc(buffer, p);
     buffer[p] = 0;
 

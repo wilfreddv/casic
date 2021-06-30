@@ -16,7 +16,14 @@ void call_visit(AST_Node* self) {}
 AST* new_ast() {
     AST* ast = malloc(sizeof(AST));
     if( ast == NULL ) return NULL;
-    
+
+    ast->symbol_table = malloc(sizeof(SymbolTable));
+    if( ast->symbol_table == NULL ) return NULL;
+
+    ast->symbol_table->size = 0;
+    ast->symbol_table->symbols = NULL;
+
+
     return ast;
 }
 
@@ -153,9 +160,13 @@ static void print_node(AST_Node* node, int level) {
 void print_ast(AST* root) {
     if( root == NULL ) return;
 
+    SymbolTable* st = root->symbol_table;
+    for(int i=0; i<st->size; i++) {
+        printf("Name: %s\tType: %s\n", st->symbols[i].name, st->symbols[i].type);
+    }
+
     CompoundNode* program = &root->program->node.compound_node;
 
-    printf("Amount of statements: %d\n", program->no_children);
     for( int i=0; i < program->no_children; i++ ) {
         print_node(program->children[i], 0);
     }

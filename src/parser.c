@@ -12,7 +12,6 @@ static Token* g_previous = NULL;
 TokenStream* g_tokens = NULL;
 
 AST* ast_ptr;
-
 SymbolTable* g_symbol;
 
 
@@ -195,7 +194,7 @@ AST_Node* term() {
 
 AST_Node* expression() {
     AST_Node* l_node, * expr_node;
-    
+
     l_node = term();
 
     if( accept(TOKEN_PLUS) || accept(TOKEN_MINUS) ) {
@@ -270,7 +269,7 @@ AST_Node* statement() {
         node->node.binary_node.operator = BIN_ASSIGN;
 
         if( (node->node.binary_node.right = expression()) != NULL )
-            add_symbol(c_node->node.var_node.name, t2str(g_current->type));
+            add_symbol(c_node->node.var_node.name, t2str(g_previous->type));
     }
     else if( is_current(TOKEN_KEYWORD) ) {
         if( accept_keyword("IF") ) {
@@ -311,7 +310,7 @@ AST_Node* statement() {
         error("Statement: syntax error (%s)", g_current->line, g_current->character, g_current->lexeme);
         next_token();
     }
-    
+
     return node;
 }
 
@@ -330,11 +329,9 @@ AST_Node* program() {
 AST* generate_ast(TokenStream* tokenstream) {
     g_tokens = tokenstream;
     g_current = g_tokens->token;
-    g_symbol = malloc(sizeof(SymbolTable));
-    g_symbol->size = 0;
-    g_symbol->symbols = NULL;
 
     ast_ptr = new_ast();
+    g_symbol = ast_ptr->symbol_table;
     
     ast_ptr->program = program();
 
