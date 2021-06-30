@@ -102,9 +102,9 @@ void next_token() {
         g_tokens = g_tokens->next;
         g_current = g_tokens->token;
     }
-    else if( g_current->type != TOKEN_EOF ) {
-        error("Ran out of tokens...", g_current->line, g_current->character);
-    }
+    // else if( g_current->type == TOKEN_EOF ) {
+    //     error("Ran out of tokens...", g_current->line, g_current->character);
+    // }
 }
 
 
@@ -132,12 +132,23 @@ int accept_keyword(const char* str) {
         return 1;
     }
     return 0;
-} 
+}
+
+
+int expect_keyword(const char* str) {
+    if( accept_keyword(str) )
+        return 1;
+    
+    error("Unexpected token. Expected `%s`", g_current->line, g_current->character, str);
+    return 0;
+}
 
 
 AST_Node* literal() {
-    if( !accept(TOKEN_STRING) && !accept(TOKEN_NUMBER) )
+    if( !accept(TOKEN_STRING) && !accept(TOKEN_NUMBER) ) {
         error("Expected literal", g_current->line, g_current->character);
+        return NULL;
+    }
 
     AST_Node* node = new_ast_node(NODE_CONST);
     node->node.const_node.value = g_previous->lexeme;
@@ -247,26 +258,41 @@ AST_Node* condition() {
 
 
 AST_Node* statement() {
-    AST_Node* node;
+    AST_Node* node = NULL;
     
     if( accept(TOKEN_IDENTIFIER) ) {
         node = new_ast_node(NODE_BINARY);
         AST_Node* c_node = new_ast_node(NODE_VAR);
         c_node->node.var_node.name = g_previous->lexeme;
         node->node.binary_node.left = c_node;
-        node->node.binary_node.operator = BIN_ASSIGN;
 
         expect(TOKEN_ASSIGN);
-        add_symbol(c_node->node.var_node.name, t2str(g_current->type));
-        node->node.binary_node.right = expression();
+        node->node.binary_node.operator = BIN_ASSIGN;
+
+        if( (node->node.binary_node.right = expression()) != NULL )
+            add_symbol(c_node->node.var_node.name, t2str(g_current->type));
     }
     else if( is_current(TOKEN_KEYWORD) ) {
         if( accept_keyword("IF") ) {
             node = new_ast_node(NODE_IF);
             node->node.if_node.condition = condition();
-            node->node.if_node._if = statement();
-            if( accept_keyword("ELSE") ) {
-                node->node.if_node._else = statement();
+
+            node->node.if_node._if = new_ast_node(NODE_COMPOUND);
+            while( !accept_keyword("ELSE") && !accept_keyword("ENDIF") ) {
+                if( accept(TOKEN_EOF) ) return NULL;
+                compound_node_add_child(&node->node.if_node._if->node.compound_node, statement());
+            }
+            
+            if( strcmp(g_previous->lexeme, "ELSE") == 0 ) {
+                node->node.if_node._else = new_ast_node(NODE_COMPOUND);
+                while( !accept_keyword("ENDIF") ) {
+                    if( accept(TOKEN_EOF) ) return NULL;
+                    compound_node_add_child(&node->node.if_node._else->node.compound_node, statement());
+                }
+            }
+
+            if( strcmp(g_previous->lexeme, "ENDIF") != 0 ) {
+                error("Unexpected token. Expected 'ENDIF'", g_previous->line, g_previous->character);
             }
         }
         // TODO: Function and keyword handling should be better
@@ -274,6 +300,11 @@ AST_Node* statement() {
             node = new_ast_node(NODE_CALL);
             node->node.call_node.instruction = g_previous->lexeme;
             compound_node_add_child(&node->node.call_node.args->node.compound_node, expression());
+        }
+        else {
+            // Invalid use of keyword
+            error("Keyword '%s' cannot be used here.", g_current->line, g_current->character, g_current->lexeme);
+            next_token();
         }
     }
     else {

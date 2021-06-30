@@ -37,8 +37,8 @@ int main(int argc, char** argv) {
 
     
     TokenStream* tokens = tokenize(argv[1], file, filesize);
-    print_tokens(tokens);
+    // print_tokens(tokens);
     AST* ast = generate_ast(tokens);
-    print_ast(ast);
-    use(ast);    
+    // print_ast(ast);
+    use(ast);
 }

@@ -43,6 +43,7 @@ enum KeywordType {
     KEYWORD_PRINT,
     KEYWORD_IF,
     KEYWORD_ELSE,
+    KEYWORD_ENDIF,
     KEYWORD_REM,
     KEYWORD_LAST   // Signal end of enum
 };

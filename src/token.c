@@ -8,6 +8,7 @@ const char* KEYWORDS[] = {
     "PRINT",
     "IF",
     "ELSE",
+    "ENDIF",
     "REM",
 };
 

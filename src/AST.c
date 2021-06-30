@@ -131,10 +131,11 @@ static void print_node(AST_Node* node, int level) {
             printtabs(level);
             printf("if:\n");
             print_node(node->node.if_node._if, level);
-            if( node->node.if_node._else != NULL )
-            printtabs(level);
-            printf("else:\n");
-            print_node(node->node.if_node._else, level);
+            if( node->node.if_node._else != NULL ) {
+                printtabs(level);
+                printf("else:\n");
+                print_node(node->node.if_node._else, level);
+            }
             break;
         case NODE_CALL:
             printf("CallNode\n");
