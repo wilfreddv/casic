@@ -161,8 +161,9 @@ void print_ast(AST* root) {
     if( root == NULL ) return;
 
     SymbolTable* st = root->symbol_table;
+    printf("Symbol Table (%ld):\n", st->size);
     for(int i=0; i<st->size; i++) {
-        printf("Name: %s\tType: %s\n", st->symbols[i].name, st->symbols[i].type);
+        printf("Name: %s\tType: %s\n", st->symbols[i].name, t2str(st->symbols[i].type));
     }
 
     CompoundNode* program = &root->program->node.compound_node;

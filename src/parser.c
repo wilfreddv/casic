@@ -26,7 +26,14 @@ AST_Node* program();
 
 void error(const char* message, int line, int character, ...);
 
+
 static int find_symbol(const char* name) {
+    /*
+     * Returns the index in the symbol table if the symbol
+     * name is found in the g_symbol table.
+     * -1 is returned if the symbol name could not
+     * be found, or g_symbol is NULL.
+     */
     if( g_symbol == NULL ) return -1;
 
     for(int i=0; i<g_symbol->size; i++) {
@@ -36,7 +43,8 @@ static int find_symbol(const char* name) {
 
     return -1;
 }
-static void add_symbol(const char* name, const char* type) {
+
+static void add_symbol(const char* name, TokenType type) {
     if( g_symbol == NULL ) return;
 
     if( g_symbol->size == 0 ) {
@@ -46,19 +54,18 @@ static void add_symbol(const char* name, const char* type) {
         return;
     }
 
-    for(int i=0; i<g_symbol->size; i++) {
-        int idx;
-        if( (idx = find_symbol(name)) > -1 ) {
-            if( g_symbol->symbols[idx].type != type ) {
-                error("Reassignment with different type for identifier '%s'. (%s to %s)",
-                    g_previous->line, g_previous->character, name, g_symbol->symbols[idx].type, type);
-            }
+    int idx;
+    if( (idx = find_symbol(name)) > -1 ) {
+        // Type override checking
+        if( g_symbol->symbols[idx].type != type ) {
+            error("Reassignment with different type for identifier '%s'. (%s to %s)",
+                g_previous->line, g_previous->character, name, t2str(g_symbol->symbols[idx].type), t2str(type));
         }
-        else {
-            g_symbol->size++;
-            g_symbol->symbols = realloc(g_symbol->symbols, sizeof(struct Symbol)*g_symbol->size);
-            g_symbol->symbols[g_symbol->size-1] = (struct Symbol){name, type};
-        }
+    }
+    else {
+        g_symbol->size++;
+        g_symbol->symbols = realloc(g_symbol->symbols, sizeof(struct Symbol)*g_symbol->size);
+        g_symbol->symbols[g_symbol->size-1] = (struct Symbol){name, type};
     }
 }
 
@@ -158,8 +165,8 @@ AST_Node* literal() {
 AST_Node* factor() {
     if( accept(TOKEN_IDENTIFIER) ) {
         // TODO: could be function possible??
-        if( find_symbol(g_previous->lexeme) == -1 )
-            error("Reference to undeclared symbol '%s'", g_previous->line, g_previous->character, g_previous->lexeme);
+        if( find_symbol(g_previous->lexeme) == TOKEN_LAST )
+            error("'%s' referenced before assignment.", g_previous->line, g_previous->character, g_previous->lexeme);
         AST_Node* node = new_ast_node(NODE_VAR);
         node->node.var_node.name = g_previous->lexeme;
         return node;
@@ -261,6 +268,7 @@ AST_Node* statement() {
     
     if( accept(TOKEN_IDENTIFIER) ) {
         node = new_ast_node(NODE_BINARY);
+
         AST_Node* c_node = new_ast_node(NODE_VAR);
         c_node->node.var_node.name = g_previous->lexeme;
         node->node.binary_node.left = c_node;
@@ -268,8 +276,24 @@ AST_Node* statement() {
         expect(TOKEN_ASSIGN);
         node->node.binary_node.operator = BIN_ASSIGN;
 
-        if( (node->node.binary_node.right = expression()) != NULL )
-            add_symbol(c_node->node.var_node.name, t2str(g_previous->type));
+        if( (node->node.binary_node.right = expression()) != NULL ) {
+            TokenType type = g_previous->type;
+            
+            if( type == TOKEN_IDENTIFIER ) {
+                /*
+                 * Check whether symbol exists
+                 */
+                int idx = find_symbol(g_previous->lexeme);
+                if( idx < 0 ) {
+                    error("'%s' referenced before assignment.", g_previous->line, g_previous->character, g_previous->lexeme);
+                    return NULL;
+                }
+                // Resolve type of symbol
+                type = g_symbol->symbols[idx].type;
+            }
+
+            add_symbol(c_node->node.var_node.name, type);
+        }
     }
     else if( is_current(TOKEN_KEYWORD) ) {
         if( accept_keyword("IF") ) {
@@ -340,5 +364,7 @@ AST* generate_ast(TokenStream* tokenstream) {
         printf("Succesfully parsed!\n");
 #endif
 
+    if( got_error )
+        return NULL;
     return ast_ptr;
 }

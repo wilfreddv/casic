@@ -9,7 +9,7 @@
 
 struct Symbol {
     const char* name;
-    const char* type;
+    TokenType type;
 };
 
 

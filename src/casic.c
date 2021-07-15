@@ -57,10 +57,11 @@ int main(int argc, char** argv) {
 
     AST* ast = generate_ast(tokens);
     if( ast == NULL ) {
-        fprintf(stderr, "'generate_ast' failed.\n");
+        fprintf(stderr, "Parsing failed, aborting...\n");
         return 1;
     }
-    // print_ast(ast);
+    printf("\n-----\n\n");
+    print_ast(ast);
 
     if( !analyze_static(ast) )
         return 1;
