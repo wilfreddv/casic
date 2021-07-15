@@ -7,4 +7,5 @@ Some implementation of some BASIC variant
 mkdir build
 cd build
 cmake ../
-make```
+make
+```
