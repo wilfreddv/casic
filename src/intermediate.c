@@ -7,17 +7,6 @@
 #include <assert.h>
 
 
-int analyze_static(AST* ast) {
-    //SymbolTable* st = ast->symbol_table;
-    AST_Node* root = ast->program;
-
-    for(int i=0; i<root->node.compound_node.no_children; i++) {
-        ;
-    }
-
-    return 1;
-}
-
 
 char* generate_intermediate(AST* ast) {
     assert(ast);

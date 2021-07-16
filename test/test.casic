@@ -1,12 +1,12 @@
 b = +3 - 1 + 2
-print b
-a = "BOOM"
-b = 3 + 2 * 3 - a
-b = a
-if b > 0
-    print "Kewl"
-else
-    if b > 0
-        print "hack ya"
-    endif
-endif
+REM print b
+REM a = "BOOM"
+REM b = 3 + 2 * 3 - a
+REM b = a
+REM if b > 0
+REM     print "Kewl"
+REM else
+REM     if b > 0
+REM         print "hack ya"
+REM     endif
+REM endif

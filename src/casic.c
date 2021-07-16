@@ -63,14 +63,13 @@ int main(int argc, char** argv) {
     printf("\n-----\n\n");
     print_ast(ast);
 
-    if( !analyze_static(ast) )
-        return 1;
 
     // optimize?
 
     char* filename = generate_intermediate(ast);
 
     if( has_arg(argc, argv, "-S") ) {
+        // Only generate assembly, don't assemble and link
         char command[64];
         sprintf(command, "mv %s prog.s", filename);
         system(command);

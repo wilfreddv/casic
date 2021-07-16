@@ -6,7 +6,6 @@
 #include <stdio.h>
 
 
-int analyze_static(AST* ast);
 char* generate_intermediate(AST* ast);
 
 
