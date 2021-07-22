@@ -28,3 +28,7 @@ add_custom_target(test-no-compile
     COMMAND ./casic ${CMAKE_SOURCE_DIR}/test/test.casic -S
     USES_TERMINAL
 )
+
+add_custom_target(linecount
+    COMMAND grep -r . ${CMAKE_SOURCE_DIR} --exclude-dir={${PROJECT_BINARY_DIR}} | wc -l
+)
