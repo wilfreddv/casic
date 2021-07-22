@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 3.18)
-project(casic C)
+project(casic C ASM_NASM)
+enable_language(ASM_NASM)
 
-add_compile_options(-c -Wall -Werror -g -DDEBUG)
+
+add_subdirectory(lib)
+
 
 set(SOURCES
     src/AST.c
@@ -13,7 +16,7 @@ set(SOURCES
 )
 
 add_executable(casic ${SOURCES})
-
+target_compile_options(casic PRIVATE -c -Wall -Werror -g -DDEBUG)
 target_include_directories(casic PRIVATE include)
 
 
