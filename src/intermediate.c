@@ -1,4 +1,5 @@
 #include <AST.h>
+#include <token.h>
 #include <intermediate.h>
 
 #include <stdlib.h>
@@ -7,8 +8,14 @@
 #include <assert.h>
 
 
+#define _WRITE(x) write(fd, x, strlen(x));
+
 
 char* generate_intermediate(AST* ast) {
+    /*
+     * This generates ASM... Not intermediate...
+     * Not unfixable, though.
+     */
     assert(ast);
 
     char template[] = "/tmp/casicXXXXXX";
@@ -19,19 +26,17 @@ char* generate_intermediate(AST* ast) {
         return NULL;
     }
 
-    char* prog = \
-    "       global  main\n"
-    "\n"
-    "       section .text\n"
-    "main:  mov     eax,1\n"
-    "       mov     ebx,0\n"
-    "       int     80h";
-
-    write(fd, prog, strlen(prog));
-
-    // for(int i=0; i<ast->symbol_table->size; i++) {
-    //     ast->symbol_table->symbols[i];
-    // }
+    _WRITE(\
+    "section .data\n"
+    "    str: db \"Hello world!\", 0xa, 0x0\n"
+    "section .text\n"
+    "    global main\n"
+    "    extern print\n"
+    "main:\n"
+    "    mov rdi, str\n"
+    "    call print\n"
+    "    ret\n"
+    );
 
     
     close(fd);

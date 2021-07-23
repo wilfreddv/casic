@@ -5,6 +5,7 @@ section .data
 
 section .text
     global _start
+    global print
     extern main
 
 _start:

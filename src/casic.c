@@ -60,8 +60,8 @@ int main(int argc, char** argv) {
         fprintf(stderr, "Parsing failed, aborting...\n");
         return 1;
     }
-    printf("\n-----\n\n");
-    print_ast(ast);
+    // printf("\n-----\n\n");
+    // print_ast(ast);
 
 
     // optimize?
@@ -77,11 +77,13 @@ int main(int argc, char** argv) {
     }
 
     // assemble.
-    char command[32];
+    char command[128];
     sprintf(command, "nasm -felf64 %s -o prog.o", filename);
+    
     int ret = 0;
     if( (ret = system(command)) == 0 ) {
-        sprintf(command, "gcc prog.o -o prog");
+        // Link it if assembling succeeded
+        sprintf(command, "ld libcasic.o prog.o --dynamic-linker=/lib/ld-linux.so.2 -o prog");
         ret = system(command);
     }
 
