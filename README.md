@@ -8,4 +8,5 @@ mkdir build
 cd build
 cmake ../
 make
+make libcasic.o
 ```
