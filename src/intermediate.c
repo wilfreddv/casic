@@ -13,32 +13,22 @@
 
 char* generate_intermediate(AST* ast) {
     /*
-     * This generates ASM... Not intermediate...
-     * Not unfixable, though.
+     * Generate IR bytecode
      */
     assert(ast);
 
-    char template[] = "/tmp/casicXXXXXX";
+    char fname[] = "/tmp/casicXXXXXX";
     int fd;
     
-    if( (fd = mkstemp(template)) == -1 ) {
+    if( (fd = mkstemp(fname)) == -1 ) {
         perror("mkstemp");
         return NULL;
     }
 
-    _WRITE(\
-    "section .data\n"
-    "    str: db \"Hello world!\", 0xa, 0x0\n"
-    "section .text\n"
-    "    global main\n"
-    "    extern print\n"
-    "main:\n"
-    "    mov rdi, str\n"
-    "    call print\n"
-    "    ret\n"
-    );
 
+    ast->program->visit(ast->program, fd);
     
+
     close(fd);
-    return strdup(template);
+    return strdup(fname);
 }

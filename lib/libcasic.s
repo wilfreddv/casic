@@ -5,8 +5,10 @@ section .data
 
 section .text
     global _start
-    global print
+    global printnum
+    global printstr
     extern main
+
 
 _start:
     call main
@@ -15,7 +17,12 @@ _start:
     int 0x80
 
 
-print:
+printnum:
+    xor rax, rax
+    mov rbx, rdi
+    ret
+
+printstr:
     call __strlen
     mov rdx, rax    ; move string length into proper register
     mov al, [SYS_WRITE]

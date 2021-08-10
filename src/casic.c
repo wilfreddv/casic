@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 
 static void use(const void* _, ...){}
@@ -61,12 +62,29 @@ int main(int argc, char** argv) {
         return 1;
     }
     // printf("\n-----\n\n");
-    // print_ast(ast);
+    print_ast(ast);
 
 
-    // optimize?
-
+    // Generate IR bytecode
     char* filename = generate_intermediate(ast);
+
+    // TODO: optimize?
+    // TODO: Generate assembly
+    int fd = open(filename, W_OK);
+    const char* __c =
+            "section .data\n"
+            "    str: db \"Hello world!\", 0xa, 0x0\n"
+            "section .text\n"
+            "    global main\n"
+            "    extern printstr\n"
+            "main:\n"
+            "    mov rdi, str\n"
+            "    call printstr\n"
+            "    xor rax, rax\n"
+            "    ret\n";
+    write(fd, __c, strlen(__c));
+    close(fd);
+
 
     if( has_arg(argc, argv, "-S") ) {
         // Only generate assembly, don't assemble and link

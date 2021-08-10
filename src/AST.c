@@ -5,12 +5,22 @@
 #include <stdlib.h>
 
 
-void binary_visit(AST_Node* self) {}
-void compound_visit(AST_Node* self) {}
-void var_visit(AST_Node* self) {}
-void const_visit(AST_Node* self) {}
-void if_visit(AST_Node* self) {}
-void call_visit(AST_Node* self) {}
+void binary_visit(AST_Node* self, int fd) {
+    BinaryNode node = self->node.binary_node;
+    
+    switch(node.operator) {
+        case BIN_ASSIGN:
+            break;
+        default:
+            break;
+    }
+}
+
+void compound_visit(AST_Node* self, int fd) {}
+void var_visit(AST_Node* self, int fd) {}
+void const_visit(AST_Node* self, int fd) {}
+void if_visit(AST_Node* self, int fd) {}
+void call_visit(AST_Node* self, int fd) {}
 
 
 AST* new_ast() {

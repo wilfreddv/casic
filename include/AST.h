@@ -91,7 +91,7 @@ struct AST {
 
 struct AST_Node {
     enum NodeTypes type;
-    void (*visit)(AST_Node* self);
+    void (*visit)(AST_Node* self, int fd);
 
     union Node {
         BinaryNode binary_node;
